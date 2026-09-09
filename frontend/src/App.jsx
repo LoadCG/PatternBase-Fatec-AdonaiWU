@@ -16,6 +16,7 @@ export function App() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const titleRef = useRef(null);
+  const heroSvgRef = useRef(null);
 
   const loadPrints = async () => {
     setLoading(true);
@@ -30,7 +31,21 @@ export function App() {
 
   useEffect(() => {
     loadPrints();
-    gsap.fromTo(titleRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' });
+    const context = gsap.context(() => {
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reducedMotion) {
+        const intro = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        intro.fromTo(titleRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8 });
+        intro.fromTo('.hero-svg-frame', { scale: 0.86, opacity: 0, rotate: -6 }, { scale: 1, opacity: 1, rotate: 0, duration: 1 }, '-=0.55');
+        gsap.to('.hero-orbit', { rotation: 360, transformOrigin: 'center', duration: 22, repeat: -1, ease: 'none' });
+        gsap.to('.hero-float-a', { y: -12, x: 8, rotation: 8, duration: 3.4, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+        gsap.to('.hero-float-b', { y: 10, x: -7, rotation: -7, duration: 4.2, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+        gsap.to('.hero-spark', { scale: 0.7, opacity: 0.45, duration: 1.6, yoyo: true, repeat: -1, stagger: 0.25, transformOrigin: 'center' });
+      } else {
+        gsap.set([titleRef.current, '.hero-svg-frame'], { opacity: 1 });
+      }
+    }, heroSvgRef);
+    return () => context.revert();
   }, []);
 
   const focusForm = () => document.getElementById('formulario').scrollIntoView({ behavior: 'smooth' });
@@ -69,7 +84,7 @@ export function App() {
 
   return <main className="shell">
     <nav className="nav" aria-label="Navegação principal"><span className="brand-mark">PB</span><span>PatternBase</span><span className="nav-caption">FATEC SJC · Programação Web</span></nav>
-    <section className="hero"><div><p className="eyebrow">ACERVO DE ESTAMPAS</p><h1 ref={titleRef}>Ideias que viram <em>padrão.</em></h1><p className="hero-copy">Um espaço para organizar, explorar e dar vida a estampas autorais.</p><motion.button className="primary-button" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} onClick={focusForm}>Nova estampa <span>↗</span></motion.button></div><div className="hero-art" aria-label="Composição abstrata de formas e cores" role="img"><span className="shape shape-one" /><span className="shape shape-two" /><span className="shape shape-three" /><span className="shape shape-four" /></div></section>
+    <section className="hero"><div><p className="eyebrow">ACERVO DE ESTAMPAS</p><h1 ref={titleRef}>Ideias que viram <em>padrão.</em></h1><p className="hero-copy">Um espaço para organizar, explorar e dar vida a estampas autorais.</p><motion.button className="primary-button" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} onClick={focusForm}>Nova estampa <span>↗</span></motion.button></div><div className="hero-art" ref={heroSvgRef}><svg className="hero-svg-frame" viewBox="0 0 520 420" role="img" aria-labelledby="hero-svg-title hero-svg-desc"><title id="hero-svg-title">Composição abstrata de formas e cores</title><desc id="hero-svg-desc">Formas geométricas inspiradas em padrões de estampas.</desc><rect width="520" height="420" rx="34" fill="#F4B942"/><g className="hero-orbit" fill="none" stroke="#F8F4E9" strokeWidth="2" opacity=".55"><ellipse cx="260" cy="210" rx="190" ry="120"/><ellipse cx="260" cy="210" rx="140" ry="185" transform="rotate(55 260 210)"/></g><g className="hero-float-a"><circle cx="105" cy="92" r="92" fill="#E76F51"/><path d="M58 95c25-44 72-48 96-7-27 8-52 30-62 61-28-10-47-27-34-54Z" fill="#F8F4E9" opacity=".8"/></g><g className="hero-float-b"><circle cx="420" cy="120" r="74" fill="#2A9D8F"/><path d="M374 120h92M420 74v92" stroke="#F8F4E9" strokeWidth="12" strokeLinecap="round" opacity=".8"/></g><circle className="hero-spark" cx="155" cy="300" r="12" fill="#F8F4E9"/><circle className="hero-spark" cx="368" cy="304" r="18" fill="#E76F51"/><path className="hero-float-a" d="M175 370c30-36 70-37 101-5-28 29-66 34-101 5Z" fill="#101828"/></svg></div></section>
     <section className="section-heading"><div><p className="eyebrow">ACERVO · {prints.length}</p><h2>Estampas recentes</h2></div><button className="ghost-button" onClick={focusForm}>+ Nova estampa</button></section>
     <div className="feedback" aria-live="polite">{notice && <p className="notice">{notice}</p>}{error && <p className="error" role="alert">{error}</p>}</div>
     <section className="cards" aria-label="Estampas recentes">{loading ? <p className="empty">Carregando acervo...</p> : prints.length === 0 ? <div className="empty-state"><p className="empty">Nenhuma estampa cadastrada ainda.</p><button className="ghost-button" onClick={focusForm}>Cadastrar a primeira</button></div> : prints.map((item) => <article className="card" key={item._id}><div className="card-art" style={colorFor(item)}>{item.imageUrl ? <img src={`${API_URL.replace('/api', '')}${item.imageUrl}`} alt={`Prévia da estampa ${item.name}`} /> : <span aria-hidden="true">✳</span>}</div><div className="card-content"><div className="card-meta"><span>{item.technique}</span><span className="status">{item.status}</span></div><h3>{item.name}</h3><p>{item.collection || 'Sem coleção'} · {(item.colors || []).length} cores</p><div className="card-actions"><button onClick={() => edit(item)} aria-label={`Editar ${item.name}`}>Editar</button><button onClick={() => remove(item._id)} aria-label={`Excluir ${item.name}`}>Excluir</button></div></div></article>)}</section>

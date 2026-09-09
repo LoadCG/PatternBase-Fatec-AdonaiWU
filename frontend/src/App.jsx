@@ -1,35 +1,19 @@
-import { useEffect, useRef } from 'react';
-import { animate, motion } from 'motion/react';
+import { useEffect, useRef, useState } from 'react';
+import { motion } from 'motion/react';
 import { gsap } from 'gsap';
 
-const examples = [
-  { name: 'Botânica Tropical', technique: 'Serigrafia', status: 'Publicado', colors: ['#F4B942', '#E76F51', '#2A9D8F'] },
-  { name: 'Geometria Solar', technique: 'Digital', status: 'Em revisão', colors: ['#101828', '#F4B942', '#F8F4E3'] },
-  { name: 'Maré Gráfica', technique: 'Aquarela', status: 'Rascunho', colors: ['#457B9D', '#A8DADC', '#F1FAEE'] }
-];
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
+const emptyForm = { name: '', description: '', technique: 'Digital', collection: '', colors: '', tags: '', status: 'Rascunho', image: null };
+const colorFor = (item) => ({ '--c1': item.colors?.[0] || '#101828', '--c2': item.colors?.[1] || '#F4B942', '--c3': item.colors?.[2] || '#E76F51' });
 
 export function App() {
-  const titleRef = useRef(null);
-
-  useEffect(() => {
-    gsap.fromTo(titleRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' });
-  }, []);
-
-  return (
-    <main className="shell">
-      <nav className="nav"><span className="brand-mark">PB</span><span>PatternBase</span><span className="nav-caption">FATEC SJC · Programação Web</span></nav>
-      <section className="hero">
-        <div>
-          <p className="eyebrow">ACERVO DE ESTAMPAS</p>
-          <h1 ref={titleRef}>Ideias que viram <em>padrão.</em></h1>
-          <p className="hero-copy">Um espaço para organizar, explorar e dar vida a estampas autorais.</p>
-          <motion.button className="primary-button" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} onClick={() => animate(window, { scrollY: 560 }, { duration: 0.6 })}>Explorar acervo <span>↗</span></motion.button>
-        </div>
-        <div className="hero-art" aria-label="Composição abstrata de formas e cores" role="img"><span className="shape shape-one" /><span className="shape shape-two" /><span className="shape shape-three" /><span className="shape shape-four" /></div>
-      </section>
-      <section className="section-heading"><div><p className="eyebrow">DESTAQUES</p><h2>Estampas recentes</h2></div><button className="ghost-button">+ Nova estampa</button></section>
-      <section className="cards" aria-label="Estampas recentes">{examples.map((item) => <article className="card" key={item.name}><div className="card-art" style={{ '--c1': item.colors[0], '--c2': item.colors[1], '--c3': item.colors[2] }}><span>✳</span></div><div className="card-content"><div className="card-meta"><span>{item.technique}</span><span className={`status ${item.status.toLowerCase().replace(' ', '-')}`}>{item.status}</span></div><h3>{item.name}</h3><p>Paleta {item.colors.length} cores · coleção experimental</p></div></article>)}</section>
-    </main>
-  );
+  const [prints, setPrints] = useState([]); const [form, setForm] = useState(emptyForm); const [editingId, setEditingId] = useState(null); const [loading, setLoading] = useState(true); const [saving, setSaving] = useState(false); const [error, setError] = useState(''); const titleRef = useRef(null);
+  const loadPrints = async () => { setLoading(true); try { const response = await fetch(`${API_URL}/prints`); if (!response.ok) throw new Error('Não foi possível carregar o acervo.'); setPrints(await response.json()); setError(''); } catch (err) { setError(err.message); } finally { setLoading(false); } };
+  useEffect(() => { loadPrints(); gsap.fromTo(titleRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' }); }, []);
+  const updateField = (event) => { const { name, value, files } = event.target; setForm((current) => ({ ...current, [name]: files ? files[0] : value })); };
+  const submit = async (event) => { event.preventDefault(); if (!form.name.trim()) return setError('Informe um nome para a estampa.'); setSaving(true); try { const payload = new FormData(); Object.entries(form).forEach(([key, value]) => { if (key === 'image' && !value) return; if (key === 'colors' || key === 'tags') payload.append(key, JSON.stringify(value.split(',').map((item) => item.trim()).filter(Boolean))); else payload.append(key, value); }); const response = await fetch(editingId ? `${API_URL}/prints/${editingId}` : `${API_URL}/prints`, { method: editingId ? 'PUT' : 'POST', body: editingId ? JSON.stringify(Object.fromEntries(payload.entries())) : payload, headers: editingId ? { 'Content-Type': 'application/json' } : undefined }); if (!response.ok) throw new Error('Não foi possível salvar a estampa.'); setForm(emptyForm); setEditingId(null); setError(''); await loadPrints(); } catch (err) { setError(err.message); } finally { setSaving(false); } };
+  const edit = (item) => { setEditingId(item._id); setForm({ ...item, colors: (item.colors || []).join(', '), tags: (item.tags || []).join(', '), image: null }); document.getElementById('formulario').scrollIntoView({ behavior: 'smooth' }); };
+  const remove = async (id) => { if (!window.confirm('Excluir esta estampa?')) return; const response = await fetch(`${API_URL}/prints/${id}`, { method: 'DELETE' }); if (response.ok) loadPrints(); else setError('Não foi possível excluir a estampa.'); };
+  return <main className="shell"><nav className="nav"><span className="brand-mark">PB</span><span>PatternBase</span><span className="nav-caption">FATEC SJC · Programação Web</span></nav><section className="hero"><div><p className="eyebrow">ACERVO DE ESTAMPAS</p><h1 ref={titleRef}>Ideias que viram <em>padrão.</em></h1><p className="hero-copy">Um espaço para organizar, explorar e dar vida a estampas autorais.</p><motion.button className="primary-button" whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} onClick={() => document.getElementById('formulario').scrollIntoView({ behavior: 'smooth' })}>Nova estampa <span>↗</span></motion.button></div><div className="hero-art" aria-label="Composição abstrata de formas e cores" role="img"><span className="shape shape-one" /><span className="shape shape-two" /><span className="shape shape-three" /><span className="shape shape-four" /></div></section><section className="section-heading"><div><p className="eyebrow">ACERVO · {prints.length}</p><h2>Estampas recentes</h2></div><button className="ghost-button" onClick={() => document.getElementById('formulario').scrollIntoView({ behavior: 'smooth' })}>+ Nova estampa</button></section>{error && <p className="error" role="alert">{error}</p>}<section className="cards" aria-label="Estampas recentes">{loading ? <p>Carregando acervo...</p> : prints.length === 0 ? <p className="empty">Nenhuma estampa cadastrada ainda.</p> : prints.map((item) => <article className="card" key={item._id}><div className="card-art" style={colorFor(item)}>{item.imageUrl ? <img src={`${API_URL.replace('/api', '')}${item.imageUrl}`} alt={item.name} /> : <span>✳</span>}</div><div className="card-content"><div className="card-meta"><span>{item.technique}</span><span className="status">{item.status}</span></div><h3>{item.name}</h3><p>{item.collection || 'Sem coleção'} · {(item.colors || []).length} cores</p><div className="card-actions"><button onClick={() => edit(item)}>Editar</button><button onClick={() => remove(item._id)}>Excluir</button></div></div></article>)}</section><section id="formulario" className="form-section"><p className="eyebrow">{editingId ? 'EDIÇÃO' : 'CADASTRO'}</p><h2>{editingId ? 'Atualizar estampa' : 'Adicionar ao acervo'}</h2><form onSubmit={submit} className="print-form"><input name="name" value={form.name} onChange={updateField} placeholder="Nome da estampa *" required /><textarea name="description" value={form.description} onChange={updateField} placeholder="Descrição" rows="3" /><div className="form-grid"><input name="technique" value={form.technique} onChange={updateField} placeholder="Técnica" /><input name="collection" value={form.collection} onChange={updateField} placeholder="Coleção" /></div><div className="form-grid"><input name="colors" value={form.colors} onChange={updateField} placeholder="Cores: #101828, #F4B942" /><input name="tags" value={form.tags} onChange={updateField} placeholder="Tags: floral, verão" /></div><div className="form-grid"><select name="status" value={form.status} onChange={updateField}><option>Rascunho</option><option>Em revisão</option><option>Publicado</option></select><input name="image" type="file" accept="image/*" onChange={updateField} /></div><div className="form-buttons"><button className="primary-button" disabled={saving}>{saving ? 'Salvando...' : editingId ? 'Salvar alterações' : 'Cadastrar estampa'}</button>{editingId && <button type="button" className="ghost-button" onClick={() => { setEditingId(null); setForm(emptyForm); }}>Cancelar</button>}</div></form></section></main>;
 }
 

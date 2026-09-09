@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import multer from 'multer';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -13,7 +14,20 @@ const port = process.env.PORT || 3333;
 const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/patternbase';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadsPath = path.resolve(__dirname, '../uploads');
+fs.mkdirSync(uploadsPath, { recursive: true });
 const upload = multer({ dest: uploadsPath });
+
+const parseList = (value) => {
+  if (Array.isArray(value)) return value;
+  if (!value) return [];
+  if (typeof value !== 'string') return [value];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [parsed];
+  } catch {
+    return value.split(',').map((item) => item.trim()).filter(Boolean);
+  }
+};
 
 const printSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
@@ -41,8 +55,8 @@ app.get('/api/prints', async (_req, res, next) => {
 app.post('/api/prints', upload.single('image'), async (req, res, next) => {
   try {
     const payload = { ...req.body };
-    payload.colors = payload.colors ? JSON.parse(payload.colors) : [];
-    payload.tags = payload.tags ? JSON.parse(payload.tags) : [];
+    payload.colors = parseList(payload.colors);
+    payload.tags = parseList(payload.tags);
     if (req.file) payload.imageUrl = `/uploads/${req.file.filename}`;
     res.status(201).json(await Print.create(payload));
   } catch (error) { next(error); }
@@ -50,7 +64,8 @@ app.post('/api/prints', upload.single('image'), async (req, res, next) => {
 
 app.put('/api/prints/:id', async (req, res, next) => {
   try {
-    const updated = await Print.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const payload = { ...req.body, colors: parseList(req.body.colors), tags: parseList(req.body.tags) };
+    const updated = await Print.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
     if (!updated) return res.status(404).json({ message: 'Estampa não encontrada.' });
     res.json(updated);
   } catch (error) { next(error); }

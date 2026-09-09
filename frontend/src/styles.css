@@ -14,6 +14,7 @@ h1 { max-width: 650px; margin: 20px 0; font-size: clamp(52px, 8vw, 92px); line-h
 h1 em { color: #e76f51; font-style: normal; }
 .hero-copy { max-width: 360px; color: #667085; font-size: 17px; line-height: 1.6; }
 button { border: 0; cursor: pointer; font: inherit; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid #2a9d8f; outline-offset: 3px; }
 .primary-button { margin-top: 28px; padding: 15px 20px; color: #f8f4e9; background: #101828; border-radius: 999px; font-weight: 700; }
 .primary-button span { margin-left: 14px; color: #f4b942; }
 .hero-art { position: relative; height: 340px; overflow: hidden; border-radius: 38% 62% 50% 50% / 45% 45% 55% 55%; background: #f4b942; transform: rotate(7deg); }
@@ -37,9 +38,13 @@ h3 { margin: 18px 0 6px; font-size: 21px; letter-spacing: -.04em; }
 .card-actions { display: flex; gap: 14px; margin-top: 18px; }
 .card-actions button { color: #e76f51; background: transparent; font-size: 12px; font-weight: 700; }
 .error { padding: 12px 16px; color: #9d2d20; background: #ffe4dd; border-radius: 12px; }
+.notice { padding: 12px 16px; color: #176b61; background: #dff5ef; border-radius: 12px; }
 .empty { color: #7b8494; }
+.empty-state { display: grid; gap: 12px; justify-items: start; }
 .form-section { margin: 30px 0 80px; padding: 34px; background: #fffdf8; border: 1px solid #ebe6d9; border-radius: 24px; }
 .print-form { display: grid; gap: 14px; max-width: 760px; margin-top: 24px; }
+.form-help { color: #667085; font-size: 14px; }
+.print-form label { display: grid; gap: 7px; color: #344054; font-size: 13px; font-weight: 700; }
 .print-form input, .print-form textarea, .print-form select { width: 100%; padding: 14px 16px; color: #101828; background: #f8f4e9; border: 1px solid #dcd6c8; border-radius: 12px; font: inherit; }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .form-buttons { display: flex; align-items: center; gap: 14px; }

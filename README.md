@@ -1,29 +1,30 @@
 # PatternBase-Fatec-AdonaiWU
 
-CRUD educacional para gerenciamento de estampas, desenvolvido na disciplina de Programação Web da FATEC SJC.
+CRUD educacional para criação e organização de estampas, desenvolvido na disciplina de Programação Web da FATEC SJC.
 
-## Stack
+## O que o projeto faz
 
-- Node.js, Express e Mongoose
-- MongoDB em Docker
-- React + Vite
-- Tailwind CSS, Motion e GSAP
-- Upload local de imagens para fins didáticos
+- Cadastra, lista, edita e exclui estampas.
+- Registra técnica, coleção, cores, tags e status.
+- Permite upload local de uma imagem por estampa.
+- Exibe feedback de carregamento, sucesso e erro.
+- Usa MongoDB persistido em volume Docker.
 
-## Estrutura
+## Tecnologias
 
-```text
-backend/     API REST e modelo MongoDB
-frontend/    Interface React
-docs/        Planejamento do projeto
-docker-compose.yml
-```
+| Camada | Tecnologias |
+| --- | --- |
+| Frontend | React, Vite, Tailwind CSS, Motion, GSAP |
+| Backend | Node.js, Express, Mongoose, Multer |
+| Banco | MongoDB 7 |
+| Ambiente | Docker Compose e Portainer local |
 
-## Como executar
+## Executar localmente
+
+Pré-requisitos: Node.js 20+, npm e Docker.
 
 ```bash
 docker compose up -d mongodb
-
 cd backend
 npm install
 npm run dev
@@ -37,12 +38,13 @@ npm install
 npm run dev
 ```
 
-API: `http://localhost:3333`  
-Frontend: `http://localhost:5173`
+Acesse `http://localhost:5173`.
 
-## Portainer local
+Endpoints: `GET /api/health`, `GET /api/prints`, `POST /api/prints`, `PUT /api/prints/:id` e `DELETE /api/prints/:id`.
 
-O Portainer não faz parte do repositório. Para fins didáticos, pode ser executado localmente:
+## Portainer didático
+
+O Portainer fica fora do repositório:
 
 ```bash
 docker volume create portainer_data
@@ -54,7 +56,11 @@ docker run -d --name portainer --restart=always \
 
 Acesse `https://localhost:9443`.
 
-## Observação sobre imagens
+## Imagens
 
-O upload atual usa armazenamento local com Multer, adequado para estudo. Em produção, seria melhor utilizar armazenamento de objetos, como S3 ou Cloudinary, e salvar somente a URL no MongoDB.
+O upload usa armazenamento local com Multer, adequado para estudo. Em produção, use armazenamento de objetos e salve apenas a URL no MongoDB.
 
+## Documentação
+
+- [Plano de desenvolvimento](docs/PLANO.md)
+- [Heurísticas de Nielsen aplicadas](docs/HEURISTICAS-NIELSEN.md)

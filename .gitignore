@@ -1,9 +1,14 @@
 node_modules/
 dist/
+.vite/
+coverage/
 .env
 .env.*
 !.env.example
 uploads/
+backend/uploads/*
+!backend/uploads/.gitkeep
 *.log
 .DS_Store
-
+.idea/
+.vscode/

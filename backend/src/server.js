@@ -10,7 +10,7 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3333;
-const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/patternbase';
+const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/patternbase';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadsPath = path.resolve(__dirname, '../uploads');
 const upload = multer({ dest: uploadsPath });
@@ -72,4 +72,3 @@ app.use((error, _req, res, _next) => {
 mongoose.connect(mongoUri)
   .then(() => app.listen(port, () => console.log(`PatternBase API em http://localhost:${port}`)))
   .catch((error) => { console.error('Falha ao conectar ao MongoDB:', error.message); process.exit(1); });
-

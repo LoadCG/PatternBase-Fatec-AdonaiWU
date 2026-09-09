@@ -14,6 +14,7 @@ const port = process.env.PORT || 3333;
 const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/patternbase';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const uploadsPath = path.resolve(__dirname, '../uploads');
+const assetsPath = path.resolve(__dirname, '../assets');
 fs.mkdirSync(uploadsPath, { recursive: true });
 const upload = multer({ dest: uploadsPath });
 
@@ -45,6 +46,7 @@ const Print = mongoose.model('Print', printSchema);
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(uploadsPath));
+app.use('/assets', express.static(assetsPath));
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', project: 'PatternBase' }));
 
@@ -64,7 +66,9 @@ app.post('/api/prints', upload.single('image'), async (req, res, next) => {
 
 app.put('/api/prints/:id', async (req, res, next) => {
   try {
-    const payload = { ...req.body, colors: parseList(req.body.colors), tags: parseList(req.body.tags) };
+    const payload = { ...req.body };
+    if (Object.hasOwn(req.body, 'colors')) payload.colors = parseList(req.body.colors);
+    if (Object.hasOwn(req.body, 'tags')) payload.tags = parseList(req.body.tags);
     const updated = await Print.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
     if (!updated) return res.status(404).json({ message: 'Estampa não encontrada.' });
     res.json(updated);
@@ -84,6 +88,20 @@ app.use((error, _req, res, _next) => {
   res.status(500).json({ message: 'Erro interno ao processar a requisição.' });
 });
 
+const initialPrint = {
+  name: 'Eu fui Salvo',
+  description: 'ESTAMPA DE CAMISETA CRISTÃ | DESIGN GRÁFICO GOSPEL Tema: Efésios 2:8 Eu fui Salvo 🕊️',
+  technique: 'Digital',
+  collection: 'Cristã',
+  colors: ['#fefefe', '#0390fc', '#010101'],
+  tags: ['oversized', 'cristã'],
+  status: 'Publicado',
+  imageUrl: '/assets/eu-fui-salvo-1080x1440.jpg'
+};
+
 mongoose.connect(mongoUri)
-  .then(() => app.listen(port, () => console.log(`PatternBase API em http://localhost:${port}`)))
+  .then(async () => {
+    if (await Print.countDocuments() === 0) await Print.create(initialPrint);
+    app.listen(port, () => console.log(`PatternBase API em http://localhost:${port}`));
+  })
   .catch((error) => { console.error('Falha ao conectar ao MongoDB:', error.message); process.exit(1); });

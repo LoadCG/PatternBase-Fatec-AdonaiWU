@@ -7,6 +7,7 @@ CRUD educacional para criação e organização de estampas, desenvolvido na dis
 - Cadastra, lista, edita e exclui estampas.
 - Registra técnica, coleção, cores, tags e status.
 - Permite upload local de uma imagem por estampa.
+- Usa o padrão vertical 1080×1440 px (proporção 3:4) para as artes.
 - Exibe feedback de carregamento, sucesso e erro.
 - Usa MongoDB persistido em volume Docker.
 
@@ -38,7 +39,7 @@ npm install
 npm run dev
 ```
 
-Acesse `http://localhost:5173`.
+Acesse `http://localhost:5173`. Se o banco estiver vazio, a API cria automaticamente a estampa inicial “Eu fui Salvo”.
 
 Endpoints: `GET /api/health`, `GET /api/prints`, `POST /api/prints`, `PUT /api/prints/:id` e `DELETE /api/prints/:id`.
 

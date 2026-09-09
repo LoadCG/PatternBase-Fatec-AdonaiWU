@@ -18,7 +18,7 @@ CRUD educacional para criação e organização de estampas, desenvolvido na dis
 | Frontend | React, Vite, Tailwind CSS, Motion, GSAP |
 | Backend | Node.js, Express, Mongoose, Multer |
 | Banco | MongoDB 7 |
-| Ambiente | Docker Compose e Portainer local |
+| Ambiente | Docker Compose |
 
 ## Executar localmente
 
@@ -42,20 +42,6 @@ npm run dev
 Acesse `http://localhost:5173`. Se o banco estiver vazio, a API cria automaticamente a estampa inicial “Eu fui Salvo”.
 
 Endpoints: `GET /api/health`, `GET /api/prints`, `POST /api/prints`, `PUT /api/prints/:id` e `DELETE /api/prints/:id`.
-
-## Portainer didático
-
-O Portainer fica fora do repositório:
-
-```bash
-docker volume create portainer_data
-docker run -d --name portainer --restart=always \
-  -p 8000:8000 -p 9443:9443 \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v portainer_data:/data portainer/portainer-ce:lts
-```
-
-Acesse `https://localhost:9443`.
 
 ## Imagens
 
